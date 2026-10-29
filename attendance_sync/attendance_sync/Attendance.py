@@ -12,7 +12,7 @@ from requests.auth import HTTPDigestAuth
 class Attendance:
 	def __init__(self, device_ip, major, minor, device_user, device_password):
 		self.device_ip = device_ip
-		self.attendance_depth = 30
+		self.attendance_depth = 250
 		self.major = int(major)
 		self.minor = int(minor)
 		self.device_user = device_user
