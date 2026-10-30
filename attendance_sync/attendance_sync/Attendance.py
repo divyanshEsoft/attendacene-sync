@@ -46,7 +46,7 @@ class Attendance:
 
 			return time_obj.isoformat()
 		except Exception:
-			# frappe.log_error(frappe.get_traceback(), "Attendance: Time Formatting Failed")
+			frappe.log_error(frappe.get_traceback(), "Attendance: Time Formatting Failed")
 			return None
 
 	def fetch_all_attendance_logs(self, start_time, end_time):
@@ -96,9 +96,9 @@ class Attendance:
 					total_matches = int(acs_event.get("totalMatches", 0))
 					returned = len(events)
 
-					# print(f"\n===== BIOMETRIC DEVICE RESPONSE (matches: {returned}, total: {total_matches}) =====")
-					# print(json.dumps(data, indent=2))
-					# print("=========================================================================\n")
+					print(f"\n===== BIOMETRIC DEVICE RESPONSE (matches: {returned}, total: {total_matches}) =====")
+					print(json.dumps(data, indent=2))
+					print("=========================================================================\n")
 
 					if not events:
 						break
@@ -114,18 +114,18 @@ class Attendance:
 						break
 
 		except requests.exceptions.RequestException as e:
-			# print(f"[Attendance Sync] RequestException: {e}")
-			# frappe.log_error(
-			# 	message=frappe.get_traceback(),
-			# 	title=f"Attendance Fetch Failed (Device: {self.device_ip})",
-			# )
+			print(f"[Attendance Sync] RequestException: {e}")
+			frappe.log_error(
+				message=frappe.get_traceback(),
+				title=f"Attendance Fetch Failed (Device: {self.device_ip})",
+			)
 			pass
 		except Exception as e:
-			# print(f"[Attendance Sync] Unexpected Exception: {e}")
-			# frappe.log_error(
-			# 	message=frappe.get_traceback(),
-			# 	title=f"Unexpected Error in Attendance Fetch (Device: {self.device_ip})",
-			# )
+			print(f"[Attendance Sync] Unexpected Exception: {e}")
+			frappe.log_error(
+				message=frappe.get_traceback(),
+				title=f"Unexpected Error in Attendance Fetch (Device: {self.device_ip})",
+			)
 			pass
 
 		return all_records
@@ -141,10 +141,10 @@ class Attendance:
 			)
 			return employee
 		except Exception:
-			# frappe.log_error(
-			# 	message=frappe.get_traceback(),
-			# 	title=f"Error fetching employee by device ID ({employee_no_string})",
-			# )
+			frappe.log_error(
+				message=frappe.get_traceback(),
+				title=f"Error fetching employee by device ID ({employee_no_string})",
+			)
 			return None
 
 	def process_logs(self, data):
@@ -172,10 +172,10 @@ class Attendance:
 				self.log_employee_attendance(emp_no, record, formatted_timestamp)
 
 			except Exception:
-				# frappe.log_error(
-				# 	message=frappe.get_traceback(),
-				# 	title=f"Error processing attendance record ({record.get('employeeNoString', 'Unknown')})",
-				# )
+				frappe.log_error(
+					message=frappe.get_traceback(),
+					title=f"Error processing attendance record ({record.get('employeeNoString', 'Unknown')})",
+				)
 				continue
 
 		try:
@@ -185,10 +185,10 @@ class Attendance:
 				frappe.db.set_value("Shift Type", shift_type["name"], "last_sync_of_checkin", now)
 			frappe.db.commit()
 		except Exception:
-			# frappe.log_error(
-			# 	message=frappe.get_traceback(),
-			# 	title="Error updating last_sync_of_checkin in Shift Type",
-			# )
+			frappe.log_error(
+				message=frappe.get_traceback(),
+				title="Error updating last_sync_of_checkin in Shift Type",
+			)
 			pass
 
 	def log_employee_attendance(self, emp_no, record, formatted_timestamp):
@@ -202,10 +202,10 @@ class Attendance:
 					device_id=record["employeeNoString"],
 				)
 		except Exception:
-			# frappe.log_error(
-			# 	message=frappe.get_traceback(),
-			# 	title=f"Error logging employee checkin (Employee: {emp_no})",
-			# )
+			frappe.log_error(
+				message=frappe.get_traceback(),
+				title=f"Error logging employee checkin (Employee: {emp_no})",
+			)
 			pass
 
 	def check_duplicate_checkin(self, emp_no, timestamp):
@@ -213,10 +213,10 @@ class Attendance:
 		try:
 			return frappe.db.exists("Employee Checkin", {"employee": emp_no, "time": timestamp})
 		except Exception:
-			# frappe.log_error(
-			# 	message=frappe.get_traceback(),
-			# 	title=f"Error checking duplicate checkin (Employee: {emp_no})",
-			# )
+			frappe.log_error(
+				message=frappe.get_traceback(),
+				title=f"Error checking duplicate checkin (Employee: {emp_no})",
+			)
 			return False
 
 	def get_and_process_attendance(self, start_time, end_time):
@@ -226,10 +226,10 @@ class Attendance:
 			if data:
 				self.process_logs(data)
 		except Exception:
-			# frappe.log_error(
-			# 	message=frappe.get_traceback(),
-			# 	title=f"Attendance Sync Failed (Device: {self.device_ip})",
-			# )
+			frappe.log_error(
+				message=frappe.get_traceback(),
+				title=f"Attendance Sync Failed (Device: {self.device_ip})",
+			)
 			pass
 
 
@@ -237,7 +237,7 @@ class Attendance:
 def process_attendance_in_background(
 	start_date, end_date, device_ip, major, minor, device_user, device_user_password
 ):
-	# print(f"\n[Attendance Sync] Background job started for device: {device_ip} ({start_date} to {end_date})")
+	print(f"\n[Attendance Sync] Background job started for device: {device_ip} ({start_date} to {end_date})")
 	try:
 		attendance = Attendance(
 			device_ip=device_ip,
@@ -247,11 +247,11 @@ def process_attendance_in_background(
 			device_password=device_user_password,
 		)
 		attendance.get_and_process_attendance(start_date, end_date)
-		# print(f"[Attendance Sync] Background job completed successfully for device: {device_ip}\n")
+		print(f"[Attendance Sync] Background job completed successfully for device: {device_ip}\n")
 	except Exception as e:
-		# print(f"[Attendance Sync] Background job failed: {e}\n")
-		# frappe.log_error(
-		# 	message=frappe.get_traceback(),
-		# 	title="Attendance Background Job Failed",
-		# )
+		print(f"[Attendance Sync] Background job failed: {e}\n")
+		frappe.log_error(
+			message=frappe.get_traceback(),
+			title="Attendance Background Job Failed",
+		)
 		pass
